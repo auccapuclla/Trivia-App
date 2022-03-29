@@ -40,12 +40,14 @@ const Trivia = ({ play }) => {
   const [corrects, setCorrects] = useState(0);
 
   useEffect(() => {
-    axios
-      .get("https://opentdb.com/api.php?amount=10")
-      .then((res) => setTriviaQuestions(res?.data?.results ?? []))
-      .catch((e) => console.log(e));
-    /* console.log("i am inside axios"); */
-  }, []);
+    if (play) {
+      axios
+        .get("https://opentdb.com/api.php?amount=10")
+        .then((res) => setTriviaQuestions(res?.data?.results ?? []))
+        .catch((e) => console.log(e));
+      /* console.log("i am inside axios"); */
+    }
+  }, [play]);
 
   if (play) {
     /* console.log(triviaQuestions.length, 1); */
@@ -53,8 +55,18 @@ const Trivia = ({ play }) => {
     if (triviaQuestions.length !== 0 && numTrivia < triviaQuestions.length) {
       const { correct_answer, incorrect_answers } = triviaQuestions[numTrivia];
 
+      const decodeHtml = html => {
+        var txt = document.createElement("textarea")
+        txt.innerHTML = html
+        return txt.value
+      }
+
+      const triviaQuestion = triviaQuestions[numTrivia].question
+      const decodedTriviaQuestion = decodeHtml(triviaQuestion)
+
       return (
         <>
+          <div>{decodedTriviaQuestion}</div>
           <div>{triviaQuestions[numTrivia].question}</div>
 
           <Choices
@@ -64,7 +76,7 @@ const Trivia = ({ play }) => {
             setCorrects={setCorrects}
           />
         </>
-      );
+      )
     } else if (
       triviaQuestions.length !== 0 &&
       numTrivia === triviaQuestions.length
@@ -90,12 +102,18 @@ const App = () => {
     setPlay(!play);
   };
 
+  const handleReloadClick = () => {
+    console.log('reload')
+    setPlay(false)
+    setTimeout(() => setPlay(true), 0)
+  }
+
   return (
     <div>
       <h1> Try your best on this Trivia Challenge </h1>
 
       <button onClick={handlePlayClick}>{play ? "Pause" : "Play"}</button>
-      <button onClick={() => {}}>Reload game</button>
+      <button onClick={handleReloadClick}>Reload game</button>
 
       <Trivia play={play} />
     </div>
