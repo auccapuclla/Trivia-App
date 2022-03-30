@@ -1,21 +1,16 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { useTrivias } from "./utils/getTrivias";
 
-const Choices = ({
-  correctAnswer,
-  incorrectAnswers,
-  setNumTrivia,
-  setCorrects,
-}) => {
+const Choices = ({ correctAnswer, incorrectAnswers, handleNext }) => {
   const checkHandle = (answer) => {
     console.log(answer);
 
     if (answer === correctAnswer) {
-      setCorrects((prev) => prev + 1);
+      handleNext(true);
       return;
     }
 
-    setNumTrivia((prev) => prev + 1);
+    handleNext(false);
     console.log("false");
   };
 
@@ -34,62 +29,54 @@ const Choices = ({
   );
 };
 
-const Trivia = ({ play }) => {
-  const [triviaQuestions, setTriviaQuestions] = useState([]);
-  const [numTrivia, setNumTrivia] = useState(0);
+const Trivia = ({ play, trivias: defaultTrivias }) => {
+  const [trivias, setTrivias] = useState([]);
   const [corrects, setCorrects] = useState(0);
 
+  const handleNext = (isCorrect) => {
+    if (isCorrect) setCorrects((prev) => prev + 1);
+
+    const newTrivias = [...trivias];
+    newTrivias.shift();
+
+    setTrivias(newTrivias);
+  };
+
   useEffect(() => {
-    if (play) {
-      axios
-        .get("https://opentdb.com/api.php?amount=10")
-        .then((res) => setTriviaQuestions(res?.data?.results ?? []))
-        .catch((e) => console.log(e));
-      /* console.log("i am inside axios"); */
-    }
-  }, [play]);
+    setTrivias(defaultTrivias);
+    setCorrects(0);
+  }, [defaultTrivias]);
 
   if (play) {
-    /* console.log(triviaQuestions.length, 1); */
-
-    if (triviaQuestions.length !== 0 && numTrivia < triviaQuestions.length) {
-      const { correct_answer, incorrect_answers } = triviaQuestions[numTrivia];
-
-      const decodeHtml = html => {
-        var txt = document.createElement("textarea")
-        txt.innerHTML = html
-        return txt.value
-      }
-
-      const triviaQuestion = triviaQuestions[numTrivia].question
-      const decodedTriviaQuestion = decodeHtml(triviaQuestion)
+    if (trivias.length) {
+      const { correct_answer, incorrect_answers } = trivias[0];
+      const question = trivias[0].question;
 
       return (
         <>
-          <div>{decodedTriviaQuestion}</div>
-          <div>{triviaQuestions[numTrivia].question}</div>
+          <div>{question}</div>
 
           <Choices
             correctAnswer={correct_answer}
             incorrectAnswers={incorrect_answers}
-            setnumTrivia={setNumTrivia}
-            setCorrects={setCorrects}
+            handleNext={handleNext}
           />
         </>
-      )
-    } else if (
-      triviaQuestions.length !== 0 &&
-      numTrivia === triviaQuestions.length
-    ) {
+      );
+    }
+
+    if (corrects) {
       return (
         <>
           <h1>Game over</h1>
           <h2>
-            You have scored {corrects} out of {triviaQuestions.length} trivias
+            You have scored {corrects} out of {defaultTrivias.length} trivias
           </h2>
         </>
       );
     }
+
+    return null;
   }
 
   return null;
@@ -97,16 +84,16 @@ const Trivia = ({ play }) => {
 
 const App = () => {
   const [play, setPlay] = useState(false);
+  const [trivias, fetchTrivias] = useTrivias();
 
   const handlePlayClick = () => {
     setPlay(!play);
+    fetchTrivias();
   };
 
   const handleReloadClick = () => {
-    console.log('reload')
-    setPlay(false)
-    setTimeout(() => setPlay(true), 0)
-  }
+    fetchTrivias();
+  };
 
   return (
     <div>
@@ -115,7 +102,7 @@ const App = () => {
       <button onClick={handlePlayClick}>{play ? "Pause" : "Play"}</button>
       <button onClick={handleReloadClick}>Reload game</button>
 
-      <Trivia play={play} />
+      <Trivia play={play} trivias={trivias} />
     </div>
   );
 };
