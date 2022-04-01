@@ -62,7 +62,7 @@ const Trivia = ({ play, setPlay, fetchTrivias, trivias: defaultTrivias }) => {
           <button onClick={handleReloadClick} className="button">Reload game</button> 
           {resume?
             <>
-              <div>{question}</div>
+              <div className="question">{question}</div>
               <Choices
                 correctAnswer={correct_answer}
                 incorrectAnswers={incorrect_answers}

@@ -6,6 +6,8 @@ body {
   text-align: center;
 }
 ul {
+  margin: 5px;
+  padding: 0px;
   text-align: center;
   list-style-type: none;
   list-style-position: inside;
@@ -36,4 +38,9 @@ button:active {
   margin: 5px 0 5px 0;
   background-color: #cf5f5f;
   border-color: #cf5f5f;
+}
+.question {
+  width: 60%;
+  margin: 5px;
+  padding: 20%;
 }
